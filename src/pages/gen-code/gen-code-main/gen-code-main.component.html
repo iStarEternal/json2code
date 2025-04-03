@@ -1,0 +1,16 @@
+<div style="width: 100%; height: 100%; display: flex;">
+
+  <div style="display: flex; flex: 1;">
+
+    <div class="json-area">
+      <div>
+        <input [value]="className" (input)="onClassNameChanged($event)"/>
+      </div>
+      <ace theme="github" [(value)]="fromJson" (valueChange)="onValueChange()"></ace>
+    </div>
+    <div class="code-area">
+      <ace theme="github" [(value)]="toCode" [contentEditable]="false"></ace>
+    </div>
+  </div>
+</div>
+
