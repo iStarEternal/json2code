@@ -37,7 +37,7 @@ class ClassNode {
     const className = this.getClassName();
     const propertiesCode = this.getPropertiesCodeStr();
 
-    const thisClassCode = `public struct ${className}: HandyJSON {\n${propertiesCode}\n}`
+    const thisClassCode = `public class ${className}: HandyJSON {\n${propertiesCode}\n    required public init() { }\n}`
 
     const otherClassNodes: ClassNode[] = this.properties.filter((e) => e.otherClass != null).map((e) => e.otherClass) as ClassNode[];
     const otherClassCodes = otherClassNodes.map((e) => e.getCode());
@@ -52,8 +52,41 @@ class Property {
   ownerClass: ClassNode | null = null;
   otherClass: ClassNode | null = null;
 
+
+  getFirstOwnerClass() {
+    let ownerClass = this.ownerClass;
+    if (ownerClass != null) {
+      if (ownerClass.ownerClass != null) {
+        ownerClass = ownerClass.ownerClass;
+      }
+    }
+    return ownerClass;
+  }
+
+  getPrefix() {
+    const firstOwnerClass = this.getFirstOwnerClass();
+    if (firstOwnerClass != null) {
+      return `${firstOwnerClass.className}_`
+    } else {
+      return '';
+    }
+  }
+
+  isBasicType() {
+    return ['String', 'Int', 'Double', 'Bool', 'Any'].includes(this.type);
+  }
+
+  getPropertyType() {
+
+    if (this.isBasicType()) {
+      return this.type;
+    }
+
+    return `${this.getPrefix()}${this.type}`;
+  }
+
   getCode() {
-    return `    public var ${this.name}: ${this.type}?`
+    return `    public var ${this.name}: ${this.getPropertyType()}?`
   }
 }
 
@@ -65,7 +98,13 @@ export class Json2SwiftHandyJsonV2 {
       const jsonObject = JSON.parse(jsonText);
       const classNode = this.getClassNode(null, className, jsonObject);
       console.log(classNode)
-      return `import HandyJson\n\n${classNode.getCode()}\n`;
+      return `//
+//  DeviceLaserHeadPosition.swift
+//
+//  Created by hyh on 2025/04/03.
+//
+
+import HandyJSON\n\n${classNode.getCode()}\n`;
     } catch (error) {
       return "Invalid JSON";
     }
