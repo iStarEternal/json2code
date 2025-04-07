@@ -1,0 +1,135 @@
+{
+  "time": 1743681723.9825752,
+  "SN": "LX21230142023090300001",
+  "total_time": 1085872.9722638528,
+  "print_time": 2220706.9702370167,
+  "total_print_time": 2231569.389397621,
+  "total_print_cnt": 43,
+  "laser_clean_time": 3600000,
+  "laser_clean_flag": 0,
+  "klippy_info": {
+    "state": "ready",
+    "state_message": "Printer is ready",
+    "hostname": "LX2-0DA220",
+    "klipper_path": "/home/lx2/klipper",
+    "python_path": "/home/lx2/klippy-env/bin/python",
+    "process_id": 1555,
+    "user_id": 1000,
+    "group_id": 1000,
+    "log_file": "/home/lx2/printer_data/logs/klippy.log",
+    "config_file": "/home/lx2/printer_data/config/printer.cfg",
+    "klipper_version": "LX2-V90009-1.0.9-25:04:02",
+    "cpu_info": "4 core ARMv8 Processor rev 0 (v8l)",
+    "moonraker_version": "LX2-V90007-1.0.7-25:04:02"
+  },
+  "toolheads": {
+    "homed_axes": "xyz",
+    "axis_minimum": [
+      -0.5,
+      -0.5,
+      -0.1,
+      0
+    ],
+    "axis_maximum": [
+      500,
+      310,
+      75,
+      0
+    ],
+    "print_time": 39.060758944444444,
+    "dev_list": [
+      {
+        "devtype": "00",
+        "devdata": "20240618",
+        "id": "3601115030523039390A242E-if00",
+        "uid": "usb-Hingin_00_20240618_3601115030523039390A242E-if00"
+      },
+      {
+        "devtype": "0F",
+        "devdata": "20240618",
+        "id": "3601115030374D343807404A-if00",
+        "uid": "usb-Hingin_0F_20240618_3601115030374D343807404A-if00"
+      }
+    ],
+    "printer_carved_area": {
+      "carved_area": "500*305, preview:{(0,23),(500,305)}, detect:{(0,19),(460,305)}",
+      "knife_cuts_carved_area": "500*305, preview:{(0,23),(500,305)}, detect:{(0,19),(460,305)}",
+      "transmission_carved_area": "490*3000, preview:{(0,210),(490,3000)}",
+      "increase_carved_area": "500*305, preview:{(0,23),(500,305)}, detect:{(0,19),(460,305)}",
+      "rotating_carved_area": "393*471, preview:{(107,0),(500,471)}, detect:{(107,0),(460,471)}"
+    },
+    "secret_key": true,
+    "door_status": {
+      "upper_cap": 2,
+      "front_door": 3,
+      "base_plate": 1,
+      "raising_base": 0,
+      "raising_front_door": 0,
+      "raising_back_door": 0
+    },
+    "estimated_print_time": 63.92535585416667,
+    "position": [
+      0,
+      0.02,
+      8.5,
+      0
+    ],
+    "save_variables": {
+      "efan_time": "15",
+      "fill_light_value": "1.0",
+      "flame_enable": "True",
+      "flame_sensitivity": "L"
+    },
+    "max_velocity": 600,
+    "max_accel": 1200,
+    "max_accel_to_decel": 600,
+    "square_corner_velocity": 4
+  },
+  "print_stats": {
+    "filename": "",
+    "total_duration": 0,
+    "print_duration": 0,
+    "filament_used": 0,
+    "state": "standby",
+    "message": ""
+  },
+  "sd_status": {
+    "file_path": null,
+    "progress": 0,
+    "is_active": false,
+    "file_position": 0,
+    "file_size": 0
+  },
+  "cpu_temp": 33.75,
+  "pos": {
+    "x_axis": {
+      "inlink": "OK",
+      "pos": 0
+    },
+    "y_axis": {
+      "inlink": "OK",
+      "pos": 0.02
+    }
+  },
+  "pump": {
+    "mode": null,
+    "value": 0,
+    "inlink": "err"
+  },
+  "flame_temp": {
+    "temperature": 41.37,
+    "measured_min_temp": 35.12,
+    "measured_max_temp": 41.37
+  },
+  "laser_temp": {
+    "temperature": 29.01,
+    "measured_min_temp": 28.14,
+    "measured_max_temp": 29.81
+  },
+  "Disk_Usage": {
+    "total": 30487990272,
+    "used": 6353526784,
+    "free": 22799196160
+  },
+  "websocket_connections": 1
+}

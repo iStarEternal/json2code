@@ -1,12 +1,17 @@
-<div style="width: 100%; height: 100%; display: flex;">
+<div style="width: 100%; height: 100%; display: flex; flex-direction: column;">
 
   <div style="display: flex; flex: 1;">
 
-    <div class="json-area">
-      <div>
+    <div class="input-area">
+      <div class="class-name-area">
+        <div class="class-name">类名</div>
         <input [value]="className" (input)="onClassNameChanged($event)"/>
       </div>
-      <ace theme="github" [(value)]="fromJson" (valueChange)="onValueChange()"></ace>
+      <div class="json-input-area">
+        <div class="title">JSON</div>
+        <ace theme="github" [(value)]="fromJson" (valueChange)="onValueChange()"></ace>
+      </div>
+
     </div>
     <div class="code-area">
       <ace theme="github" [(value)]="toCode" [contentEditable]="false"></ace>

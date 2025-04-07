@@ -3,13 +3,10 @@ class ClassNode {
   ownerClass: ClassNode | null = null;
   properties: Property [] = []
 
-
-  getFirstOwnerClass() {
+  getFirstOwnerClass(): ClassNode | null {
     let ownerClass = this.ownerClass;
-    if (ownerClass != null) {
-      if (ownerClass.ownerClass != null) {
-        ownerClass = ownerClass.ownerClass;
-      }
+    while (ownerClass?.ownerClass != null) {
+      ownerClass = ownerClass.ownerClass;
     }
     return ownerClass;
   }
@@ -37,9 +34,9 @@ class ClassNode {
     const className = this.getClassName();
     const propertiesCode = this.getPropertiesCodeStr();
 
-    const thisClassCode = `public class ${className}: HandyJSON {\n${propertiesCode}\n    required public init() { }\n}`
+    const thisClassCode = `public struct ${className}: HandyJSON {\n${propertiesCode}\n    public init() { }\n}`
 
-    const otherClassNodes: ClassNode[] = this.properties.filter((e) => e.otherClass != null).map((e) => e.otherClass) as ClassNode[];
+    const otherClassNodes: ClassNode[] = this.properties.filter((e) => e.selfClass != null).map((e) => e.selfClass) as ClassNode[];
     const otherClassCodes = otherClassNodes.map((e) => e.getCode());
 
     return [thisClassCode, ...otherClassCodes].join('\n\n');
@@ -49,18 +46,13 @@ class ClassNode {
 class Property {
   name: string = '';
   type: string = '';
+  isArray: boolean = false;
   ownerClass: ClassNode | null = null;
-  otherClass: ClassNode | null = null;
+  selfClass: ClassNode | null = null;
 
 
   getFirstOwnerClass() {
-    let ownerClass = this.ownerClass;
-    if (ownerClass != null) {
-      if (ownerClass.ownerClass != null) {
-        ownerClass = ownerClass.ownerClass;
-      }
-    }
-    return ownerClass;
+    return this.selfClass?.getFirstOwnerClass();
   }
 
   getPrefix() {
@@ -77,12 +69,16 @@ class Property {
   }
 
   getPropertyType() {
-
+    let type: string = this.type
     if (this.isBasicType()) {
-      return this.type;
+      type = this.type;
+    } else {
+      type = `${this.getPrefix()}${type}`;
     }
-
-    return `${this.getPrefix()}${this.type}`;
+    if (this.isArray) {
+      type = `[${type}]`;
+    }
+    return type
   }
 
   getCode() {
@@ -93,18 +89,20 @@ class Property {
 
 export class Json2SwiftHandyJsonV2 {
 
+  static fileHeader() {
+    return `//
+//  DeviceLaserHeadPosition.swift
+//
+//  Created by hyh on 2025/04/03.
+//`
+  }
+
   static convert(className: string, jsonText: string) {
     try {
       const jsonObject = JSON.parse(jsonText);
       const classNode = this.getClassNode(null, className, jsonObject);
       console.log(classNode)
-      return `//
-//  DeviceLaserHeadPosition.swift
-//
-//  Created by hyh on 2025/04/03.
-//
-
-import HandyJSON\n\n${classNode.getCode()}\n`;
+      return `${this.fileHeader()}\n\nimport HandyJSON\n\n${classNode.getCode()}\n`;
     } catch (error) {
       return "Invalid JSON";
     }
@@ -151,10 +149,6 @@ import HandyJSON\n\n${classNode.getCode()}\n`;
       property.type = "Bool";
       return property;
     }
-    if (typeof value === 'undefined') {
-      property.type = "Und";
-      return property;
-    }
 
     // 数组
     if (Array.isArray(value)) {
@@ -163,14 +157,15 @@ import HandyJSON\n\n${classNode.getCode()}\n`;
       } else {
         property.type = 'Any';
       }
+      property.isArray = true;
       return property;
     }
 
     // 字典
-    if (typeof value === "object" && value !== null) {
+    if (typeof value === "object") {
       let propertyType = this.capitalizeFirstLetter(key);
       property.type = propertyType;
-      property.otherClass = this.getClassNode(ownerClass, propertyType, value);
+      property.selfClass = this.getClassNode(ownerClass, propertyType, value);
       return property
     }
 

@@ -1,13 +1,54 @@
-.json-area {
-  flex: 0.3;
-  //display: flex;
-  padding: 12px;
-  background: #ABC;
-}
+:host {
+  .input-area {
+    flex: 0.3;
+    padding: 12px;
+    background: #B1C8DF;
 
-.code-area {
-  flex: 0.7;
-  //display: flex;
-  padding: 12px;
-  background: #EEE;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .class-name-area {
+
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      //padding-bottom: 16px;
+      border-bottom: 1px solid #FFF;
+
+      div:first-child {
+        font-size: 18px;
+        font-weight: bold;
+        //margin-bottom: 12px;
+      }
+
+      input {
+        border: none;
+        padding: 16px;
+        border-radius: 8px;
+        font-size: 18px;
+      }
+    }
+
+    .json-input-area {
+      flex: 1;
+
+      div:first-child {
+        font-size: 18px;
+        font-weight: bold;
+        //margin-bottom: 12px;
+      }
+    }
+
+  }
+
+  .code-area {
+    flex: 0.7;
+    padding: 12px;
+    background: #EEE;
+  }
+
+  ace {
+    border: 1px solid #798999;
+  }
 }

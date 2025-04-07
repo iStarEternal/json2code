@@ -31,10 +31,16 @@ export class GenCodeMainComponent {
   "T1Obj2": [
     {
       "str": "abc",
-      "num": 1
+      "num": 1,
+      "s": [
+        {
+         "VV": {}
+        }
+      ]
     }
   ]
 }
+
 `
 
   toCode: string = ''
@@ -70,23 +76,14 @@ export class GenCodeMainComponent {
       return
     }
 
-    const v1Code = Json2SwiftHandyJsonV1.convert(className, fromJson)
-    console.log("v1Code", v1Code);
+    // const v1Code = Json2SwiftHandyJsonV1.convert(className, fromJson)
+    // console.log("v1Code", v1Code);
 
 
     const v2Code = Json2SwiftHandyJsonV2.convert(className, fromJson);
-    console.log("v2Code", v2Code);
+    // console.log("v2Code", v2Code);
 
 
-    let v1 = undefined;
-    let v2 = null;
-    if (typeof v1 === 'undefined') {
-      console.log('v1');
-    }
-    if (typeof v2 === 'undefined') {
-      console.log('v2');
-    }
-    console.log('v1', typeof v2);
 
     this.toCode = v2Code;
   }
