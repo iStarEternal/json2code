@@ -1,7 +1,25 @@
 :host {
+
+  .b-container {
+    width: 100vw;
+    height: 100vh;
+    //position: relative;
+  }
+
+  .page {
+    //position: absolute;
+    //left: 0;
+    //right: 0;
+    //top: 0;
+    //bottom: 0;
+    height: 100%;
+    display: flex;
+  }
+
   .input-area {
     flex: 0.3;
     padding: 12px;
+
     background: #B1C8DF;
 
     display: flex;
@@ -13,13 +31,13 @@
       display: flex;
       flex-direction: column;
       align-items: stretch;
-      //padding-bottom: 16px;
+      padding-bottom: 16px;
       border-bottom: 1px solid #FFF;
 
       div:first-child {
         font-size: 18px;
         font-weight: bold;
-        //margin-bottom: 12px;
+        margin-bottom: 12px;
       }
 
       input {
@@ -32,11 +50,17 @@
 
     .json-input-area {
       flex: 1;
+      display: flex;
+      flex-direction: column;
 
       div:first-child {
         font-size: 18px;
         font-weight: bold;
-        //margin-bottom: 12px;
+        margin-bottom: 12px;
+      }
+
+      ace {
+        flex: 1;
       }
     }
 
@@ -46,6 +70,10 @@
     flex: 0.7;
     padding: 12px;
     background: #EEE;
+    display: flex;
+    ace {
+      flex: 1;
+    }
   }
 
   ace {

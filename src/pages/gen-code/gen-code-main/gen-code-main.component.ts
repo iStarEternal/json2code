@@ -1,17 +1,11 @@
-import {Component, ViewChild} from '@angular/core';
-import {AceModule} from 'ngx-ace-wrapper';
-import {Json2SwiftHandyJsonV1} from './Json2SwiftHandyJsonV1';
+import {Component} from '@angular/core';
 import {Json2SwiftHandyJsonV2} from './Json2SwiftHandyJsonV2';
 
 @Component({
   selector: 'app-gen-code-main',
-  imports: [
-    AceModule
-
-  ],
   templateUrl: './gen-code-main.component.html',
-  standalone: true,
-  styleUrl: './gen-code-main.component.less'
+  styleUrl: './gen-code-main.component.less',
+  standalone: false,
 })
 export class GenCodeMainComponent {
 // // https://github.com/alibaba/HandyJSON/blob/master/README_cn.md
