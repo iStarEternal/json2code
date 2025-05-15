@@ -10,12 +10,12 @@
         </div>
         <div class="json-input-area">
           <div class="title">JSON</div>
-          <ace theme="github" mode="ace/mode/json5" [(value)]="fromJson" (valueChange)="onValueChange()"></ace>
+          <ace theme="github" [(value)]="fromJson" (valueChange)="onValueChange()"></ace>
         </div>
 
       </div>
       <div class="code-area">
-        <ace theme="github" [(value)]="toCode" [contentEditable]="false"></ace>
+        <ace theme="github" [(value)]="toCode" ></ace>
       </div>
   </div>
 </div>
