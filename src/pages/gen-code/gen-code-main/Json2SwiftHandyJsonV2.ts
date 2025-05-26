@@ -4,90 +4,69 @@ class ClassNode {
   properties: Property[] = [];
 
   getFirstOwnerClass(): ClassNode | null {
-    let ownerClass = this.ownerClass;
-    while (ownerClass?.ownerClass != null) {
-      ownerClass = ownerClass.ownerClass;
+    let current = this.ownerClass;
+    while (current?.ownerClass != null) {
+      current = current.ownerClass;
     }
-    return ownerClass;
+    return current;
   }
 
-  getPrefix() {
-    const firstOwnerClass = this.getFirstOwnerClass();
-    if (firstOwnerClass != null) {
-      return `${firstOwnerClass.className}_`;
-    } else {
-      return '';
-    }
+  getPrefix(): string {
+    const firstOwner = this.getFirstOwnerClass();
+    return firstOwner ? `${firstOwner.className}_` : '';
   }
 
-  getClassName() {
+  getClassName(): string {
     return `${this.getPrefix()}${this.className}`;
   }
 
-  getPropertiesCodeStr(): string {
-    const propertiesCodes = this.properties.map((property) => property.getCode());
-    return propertiesCodes.join('\n');
+  getPropertiesCode(): string {
+    return this.properties.map((p) => p.toCodeLine() + '\n').join('');
   }
 
   getCode(): string {
-    const className = this.getClassName();
-    const propertiesCode = this.getPropertiesCodeStr();
+    const thisClassCode = `public struct ${this.getClassName()}: HandyJSON {\n${this.getPropertiesCode()}    public init() { }\n}`;
+    const nestedClassCodes = this.properties
+      .filter((p) => p.selfClass != null)
+      .map((p) => p.selfClass!.getCode());
 
-    const thisClassCode = `public struct ${className}: HandyJSON {\n${propertiesCode}\n    public init() { }\n}`;
-
-    const otherClassNodes: ClassNode[] = this.properties
-      .filter((e) => e.selfClass != null)
-      .map((e) => e.selfClass) as ClassNode[];
-    const otherClassCodes = otherClassNodes.map((e) => e.getCode());
-
-    return [thisClassCode, ...otherClassCodes].join('\n\n');
+    return [thisClassCode, ...nestedClassCodes].join('\n\n');
   }
 }
 
 class Property {
   name: string = '';
-  type: string = '';
-  isArray: boolean = false;
-  arrayDepth: number = 0; // 新增数组层级
+  baseType: string = '';
+  arrayDepth: number = 0; // 维度，0 表示非数组
   ownerClass: ClassNode | null = null;
   selfClass: ClassNode | null = null;
 
-  getFirstOwnerClass() {
-    return this.selfClass?.getFirstOwnerClass();
+  // 判断是否是基础类型
+  isBasicType(): boolean {
+    return ['String', 'Int', 'Double', 'Bool', 'Any'].includes(this.baseType);
   }
 
-  getPrefix() {
-    const firstOwnerClass = this.getFirstOwnerClass();
-    if (firstOwnerClass != null) {
-      return `${firstOwnerClass.className}_`;
-    } else {
-      return '';
-    }
-  }
-
-  isBasicType() {
-    return ['String', 'Int', 'Double', 'Bool', 'Any'].includes(this.type);
-  }
-
-  getPropertyType() {
-    let type: string = this.type;
-    if (!this.isBasicType()) {
-      type = `${this.getPrefix()}${type}`;
-    }
-    // 根据 arrayDepth 拼接多层 []
+  // 生成属性完整类型（带多维数组）
+  getFullType(): string {
+    let typeName = this.isBasicType() ? this.baseType : `${this.getPrefix()}${this.baseType}`;
     for (let i = 0; i < this.arrayDepth; i++) {
-      type = `[${type}]`;
+      typeName = `[${typeName}]`;
     }
-    return type;
+    return typeName;
   }
 
-  getCode() {
-    return `    public var ${this.name}: ${this.getPropertyType()}?`;
+  getPrefix(): string {
+    const firstOwner = this.selfClass?.getFirstOwnerClass();
+    return firstOwner ? `${firstOwner.className}_` : '';
+  }
+
+  toCodeLine(): string {
+    return `    public var ${this.name}: ${this.getFullType()}?`;
   }
 }
 
 export class Json2SwiftHandyJsonV2 {
-  static fileHeader() {
+  static fileHeader(): string {
     return `//
 //  DeviceLaserHeadPosition.swift
 //
@@ -95,144 +74,140 @@ export class Json2SwiftHandyJsonV2 {
 //`;
   }
 
-  static convert(className: string, jsonText: string) {
+  static convert(rootClassName: string, jsonText: string): string {
     try {
       const jsonObject = JSON.parse(jsonText);
-      const classNode = this.getClassNode(null, className, jsonObject);
-      return `${this.fileHeader()}\n\nimport HandyJSON\n\n${classNode.getCode()}\n`;
-    } catch (error) {
+      const rootNode = this.parseObject(null, rootClassName, jsonObject);
+      return `${this.fileHeader()}\n\nimport HandyJSON\n\n${rootNode.getCode()}\n`;
+    } catch {
       return 'Invalid JSON';
     }
   }
 
-  static getClassNode(ownerClass: ClassNode | null, name: string, obj: any): ClassNode {
-    const codeClass = new ClassNode();
-    codeClass.ownerClass = ownerClass;
-    codeClass.className = name;
-    codeClass.properties = [];
+  // 入口：解析对象生成 ClassNode
+  static parseObject(owner: ClassNode | null, className: string, obj: any): ClassNode {
+    const node = new ClassNode();
+    node.ownerClass = owner;
+    node.className = className;
+    node.properties = [];
 
     for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        const value = obj[key];
-        const property = this.getProperty(codeClass, key, value);
-        codeClass.properties.push(property);
-      }
+      if (!obj.hasOwnProperty(key)) continue;
+      const prop = this.parseProperty(node, key, obj[key]);
+      node.properties.push(prop);
     }
 
-    return codeClass;
+    return node;
   }
 
-  // 新增专门递归处理多维数组的函数
-  static getArrayElementType(ownerClass: ClassNode | null, key: string, arr: any[]): Property {
-    const property = new Property();
-    property.ownerClass = ownerClass;
-    property.name = key;
-
-    if (arr.length === 0) {
-      property.type = 'Any';
-      property.arrayDepth = 1;
-      return property;
-    }
-
-    const first = arr[0];
-
-    if (Array.isArray(first)) {
-      // 递归调用，数组层级+1
-      const innerProp = this.getArrayElementType(ownerClass, key, first);
-      property.type = innerProp.type;
-      property.selfClass = innerProp.selfClass;
-      property.arrayDepth = innerProp.arrayDepth + 1;
-      return property;
-    }
-
-    if (typeof first === 'object' && first !== null) {
-      const typeName = this.capitalizeFirstLetter(key);
-      property.type = typeName;
-      property.selfClass = this.getClassNode(ownerClass, typeName, first);
-      property.arrayDepth = 1;
-      return property;
-    }
-
-    // 基础类型判定，检查整个数组元素类型
-    const types = new Set<string>();
-    for (const item of arr) {
-      if (item == null) {
-        types.add('Any');
-      } else if (typeof item === 'string') {
-        types.add('String');
-      } else if (typeof item === 'boolean') {
-        types.add('Bool');
-      } else if (typeof item === 'number') {
-        if (Number.isInteger(item)) {
-          types.add('Int');
-        } else {
-          types.add('Double');
-        }
-      } else {
-        types.add('Any');
-      }
-    }
-
-    // 如果同时包含 Int 和 Double，则用 Double
-    if (types.has('Int') && types.has('Double')) {
-      types.delete('Int');
-    }
-
-    if (types.size === 1) {
-      property.type = [...types][0];
-    } else {
-      property.type = 'Any';
-    }
-
-    property.arrayDepth = 1;
-    return property;
-  }
-
-  static getProperty(ownerClass: ClassNode | null, key: string, value: any): Property {
-    let property = new Property();
-    property.ownerClass = ownerClass;
-    property.name = key;
-
-    if (value == null) {
-      property.type = 'Any';
-      return property;
+  // 解析属性，支持多维数组递归解析
+  static parseProperty(owner: ClassNode | null, name: string, value: any): Property {
+    if (value === null || value === undefined) {
+      return this.createProperty(owner, name, 'Any', 0, null);
     }
 
     if (typeof value === 'string') {
-      property.type = 'String';
-      return property;
-    }
-
-    if (typeof value === 'number') {
-      property.type = Number.isInteger(value) ? 'Int' : 'Double';
-      return property;
+      return this.createProperty(owner, name, 'String', 0, null);
     }
 
     if (typeof value === 'boolean') {
-      property.type = 'Bool';
-      return property;
+      return this.createProperty(owner, name, 'Bool', 0, null);
+    }
+
+    if (typeof value === 'number') {
+      return this.createProperty(owner, name, Number.isInteger(value) ? 'Int' : 'Double', 0, null);
     }
 
     if (Array.isArray(value)) {
-      // 递归判断数组元素类型，包含多维数组
-      property = this.getArrayElementType(ownerClass, key, value);
-      return property;
+      return this.parseArrayProperty(owner, name, value);
     }
 
     if (typeof value === 'object') {
-      const propertyType = this.capitalizeFirstLetter(key);
-      property.type = propertyType;
-      property.selfClass = this.getClassNode(ownerClass, propertyType, value);
-      return property;
+      // 普通对象，递归生成类
+      const className = this.capitalize(name);
+      const childClass = this.parseObject(owner, className, value);
+      return this.createProperty(owner, name, className, 0, childClass);
     }
 
-    property.type = 'Unknown';
-    console.log('Unknown', value, property);
-    return property;
+    // 兜底
+    return this.createProperty(owner, name, 'Any', 0, null);
   }
 
-  /// 将第一位转为大写
-  static capitalizeFirstLetter(str: string): string {
+  // 专门处理数组类型，递归判定元素类型和层级
+  static parseArrayProperty(owner: ClassNode | null, name: string, arr: any[]): Property {
+    const prop = new Property();
+    prop.ownerClass = owner;
+    prop.name = name;
+
+    if (arr.length === 0) {
+      prop.baseType = 'Any';
+      prop.arrayDepth = 1;
+      return prop;
+    }
+
+    // 递归检测多维数组深度和元素类型
+    let element = arr;
+    let depth = 0;
+
+    while (Array.isArray(element)) {
+      if (element.length === 0) break;
+      element = element[0];
+      depth++;
+    }
+
+    // 根据元素类型不同，生成不同类型
+    if (element === null || element === undefined) {
+      prop.baseType = 'Any';
+      prop.arrayDepth = depth;
+      return prop;
+    }
+
+    if (typeof element === 'object' && !Array.isArray(element)) {
+      // 元素是对象，递归生成类
+      const className = this.capitalize(name);
+      const childClass = this.parseObject(owner, className, element);
+      prop.baseType = className;
+      prop.selfClass = childClass;
+      prop.arrayDepth = depth;
+      return prop;
+    }
+
+    // 元素为基础类型，则需要判断是否为混合类型
+    const typesSet = new Set<string>();
+    for (const item of arr.flat(depth - 1)) {
+      if (item === null || item === undefined) typesSet.add('Any');
+      else if (typeof item === 'string') typesSet.add('String');
+      else if (typeof item === 'boolean') typesSet.add('Bool');
+      else if (typeof item === 'number') {
+        typesSet.add(Number.isInteger(item) ? 'Int' : 'Double');
+      } else {
+        typesSet.add('Any');
+      }
+    }
+
+    // 优先 Double > Int > Others
+    if (typesSet.has('Int') && typesSet.has('Double')) {
+      typesSet.delete('Int');
+    }
+
+    prop.baseType = typesSet.size === 1 ? [...typesSet][0] : 'Any';
+    prop.arrayDepth = depth;
+    return prop;
+  }
+
+  // 工厂函数创建 Property
+  static createProperty(owner: ClassNode | null, name: string, baseType: string, arrayDepth: number, selfClass: ClassNode | null): Property {
+    const p = new Property();
+    p.ownerClass = owner;
+    p.name = name;
+    p.baseType = baseType;
+    p.arrayDepth = arrayDepth;
+    p.selfClass = selfClass;
+    return p;
+  }
+
+  static capitalize(str: string): string {
+    if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 }

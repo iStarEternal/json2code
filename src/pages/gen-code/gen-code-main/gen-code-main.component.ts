@@ -63,23 +63,7 @@ export class GenCodeMainComponent {
     if (fromJson == null || fromJson.length < 2) {
       return;
     }
-
-    const jsonObject = JSON.parse(fromJson);
-    if (jsonObject == null) {
-      console.log("非json");
-      return
-    }
-
-    // const v1Code = Json2SwiftHandyJsonV1.convert(className, fromJson)
-    // console.log("v1Code", v1Code);
-
-
-    const v2Code = Json2SwiftHandyJsonV2.convert(className, fromJson);
-    // console.log("v2Code", v2Code);
-
-
-
-    this.toCode = v2Code;
+    this.toCode = Json2SwiftHandyJsonV2.convert(className, fromJson);
   }
 
 }
