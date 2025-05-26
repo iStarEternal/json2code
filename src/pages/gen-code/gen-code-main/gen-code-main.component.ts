@@ -11,30 +11,30 @@ export class GenCodeMainComponent {
 // // https://github.com/alibaba/HandyJSON/blob/master/README_cn.md
 
 
-  className: string = '';
+  className: string = 'Test';
 
   fromJson: string = `{
   "name": "P1",
   "age": 1.2,
-  "T1Obj1": {
+  "obj1": {
     "str": "abc",
     "num": 1,
-    "T2Obj1": {},
-    "T2Obj2": {}
+    "obj1_1": {},
+    "obj1_2": {},
+    "obj1_arr_arr": [[1, 2.1, 3]]
   },
-  "T1Obj2": [
+  "obj2": [
     {
       "str": "abc",
       "num": 1,
-      "s": [
+      "obj2_1": [
         {
-         "VV": {}
+         "obj2_1_1": {}
         }
       ]
     }
   ]
 }
-
 `
 
   toCode: string = ''
