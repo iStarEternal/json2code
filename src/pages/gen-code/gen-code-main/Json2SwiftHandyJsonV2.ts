@@ -66,19 +66,25 @@ class Property {
 }
 
 export class Json2SwiftHandyJsonV2 {
-  static fileHeader(): string {
+  static fileHeader(className: string): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+
     return `//
-//  DeviceLaserHeadPosition.swift
+//  ${className}.swift
 //
-//  Created by hyh on 2025/04/03.
-//`;
+//  Created by hyh on ${year}/${month}/${day}.
+//
+`;
   }
 
   static convert(rootClassName: string, jsonText: string): string {
     try {
       const jsonObject = JSON.parse(jsonText);
       const rootNode = this.parseObject(null, rootClassName, jsonObject);
-      return `${this.fileHeader()}\n\nimport HandyJSON\n\n${rootNode.getCode()}\n`;
+      return `${this.fileHeader(rootClassName)}\nimport HandyJSON\n\n${rootNode.getCode()}\n`;
     } catch {
       return 'Invalid JSON';
     }
